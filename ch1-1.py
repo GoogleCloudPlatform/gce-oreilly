@@ -16,12 +16,12 @@
 
 """Command-line skeleton application for Compute Engine API.
 Usage:
-  $ python sample.py
+  $ python ch1-1.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python sample.py --help
+  $ python ch1-1.py --help
 
 """
 
