@@ -41,7 +41,7 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     parents=[tools.argparser])
 
-# CLIENT_SECRET is name of a file containing the OAuth 2.0 information
+# CLIENT_SECRET is the name of a file containing the OAuth 2.0 information
 # for this application, including client_id and client_secret.
 CLIENT_SECRET = os.path.join(os.path.dirname(__file__), 'client_secret.json')
 
