@@ -46,8 +46,8 @@ parser = argparse.ArgumentParser(
 CLIENT_SECRET = os.path.join(os.path.dirname(__file__), 'client_secret.json')
 
 # Set up a Flow object to be used for authentication. PLEASE ONLY
-# ADD THE SCOPES YOU NEED. For more information on using scopes
-# please see <https://developers.google.com/+/best-practices>.
+# ADD THE SCOPES YOU NEED. For more information on using scopes please
+# see <https://developers.google.com/compute/docs/api/how-tos/authorization>.
 FLOW = client.flow_from_clientsecrets(
     CLIENT_SECRET,
     scope=['https://www.googleapis.com/auth/compute'],
