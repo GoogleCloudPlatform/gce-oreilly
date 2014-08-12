@@ -16,12 +16,12 @@
 
 """Command-line skeleton application for Compute Engine API.
 Usage:
-  $ python ch1-1.py
+  $ python ch1-2.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python ch1-1.py --help
+  $ python ch1-2.py --help
 
 """
 
@@ -73,7 +73,21 @@ def main(argv):
   # Construct the service object for the interacting with the Compute Engine API.
   service = discovery.build('compute', 'v1', http=http)
 
-  print 'Success! Now add code here.'
+  # print 'Success! Now add code here.'
+
+  project_id = 'your-project-id'
+
+  # Build a request to get the specified project using the Compute Engine API.
+  request = service.projects().get(project=project_id)
+  try:
+    # Execute the request and store the response.
+    response = request.execute()
+  except Exception, ex:
+    print 'ERROR: ' + str(ex)
+    sys.exit()
+
+  # Print the response.
+  print response
 
 
 # For more information on the Compute Engine API you can visit:
