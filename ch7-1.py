@@ -86,6 +86,9 @@ def main(argv):
 
   BODY = {
     'name': 'startup-script-api',
+    'tags': {
+      'items': ['frontend']
+    },
     'machineType': URL_PREFIX + '/%s/projects/%s/zones/%s/machineTypes/%s' % (
         API_VERSION, PROJECT_ID, ZONE, MACHINE_TYPE),
     'disks': [{
