@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Start an instance with a startup script.
+"""Start an instance with a custom image.
 Usage:
-  $ python ch7-1.py
+  $ python ch7-2.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python ch7-1.py --help
+  $ python ch7-2.py --help
 
 """
 
@@ -82,14 +82,10 @@ def main(argv):
   PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
   ZONE = 'us-central1-a'
   MACHINE_TYPE = 'n1-standard-1'
-  IMAGE_PROJECT_ID = 'debian-cloud'
-  IMAGE_PROJECT_URL = '%s/%s/projects/%s' % (
-      URL_PREFIX, API_VERSION, IMAGE_PROJECT_ID)
-  IMAGE_NAME = 'debian-7-wheezy-v20140807'
-  STARTUP_SCRIPT_URL = 'gs://bucket/object'
+  IMAGE_NAME = 'apache-image'
 
   BODY = {
-    'name': 'startup-script-api',
+    'name': 'custom-image-api',
     'tags': {
       'items': ['frontend']
     },
@@ -101,8 +97,8 @@ def main(argv):
       'mode': 'READ_WRITE',
       'zone': '%s/zones/%s' % (PROJECT_URL, ZONE),
       'initializeParams': {
-        'sourceImage': '%s/global/images/%s' % (IMAGE_PROJECT_URL, IMAGE_NAME)
-      },
+        'sourceImage': '%s/global/images/%s' % (PROJECT_URL, IMAGE_NAME)
+      }
     }],
     'networkInterfaces': [{
       'accessConfigs': [{
@@ -121,13 +117,7 @@ def main(argv):
         'https://www.googleapis.com/auth/compute',
         'https://www.googleapis.com/auth/devstorage.full_control'
       ]
-    }],
-    'metadata': {
-      'items': [{
-        'key': 'startup-script-url',
-        'value': STARTUP_SCRIPT_URL
-      }]
-    }
+    }]
   }
 
   # Build and execute instance insert request.

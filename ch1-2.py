@@ -75,10 +75,10 @@ def main(argv):
 
   # print 'Success! Now add code here.'
 
-  project_id = 'your-project-id'
+  PROJECT_ID = 'your-project-id'
 
   # Build a request to get the specified project using the Compute Engine API.
-  request = service.projects().get(project=project_id)
+  request = service.projects().get(project=PROJECT_ID)
   try:
     # Execute the request and store the response.
     response = request.execute()
