@@ -90,10 +90,15 @@ def main(argv):
     sys.exit()
 
   # Use the commonInstanceMetadata dictionary as the body
-  # of the request, and add the new cloud-storage-bucket
-  # metadata entry to the list of items in the dictionary.
+  # of the request, and add or update the cloud-storage-bucket
+  # metadata entry in the list of items in the dictionary.
   BODY = response['commonInstanceMetadata']
-  BODY['items'].append(METADATA)
+  for item in BODY['items']:
+    if item['key'] == METADATA['key']:
+      item['value'] = METADATA['value']
+      break
+  else:
+    BODY['items'].append(METADATA)
 
   # Build and execute the set common instance metadata request.
   request = service.projects().setCommonInstanceMetadata(
@@ -104,7 +109,7 @@ def main(argv):
     print 'ERROR: ' + str(ex)
     sys.exit()
 
-  # Metadata setting is asynchronous so wait for an operation status of DONE.
+  # Setting metadata is asynchronous so wait for an operation status of DONE.
   op_name = response['name']
   operations = service.globalOperations()
   while True:

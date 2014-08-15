@@ -97,6 +97,9 @@ def main(argv):
   for item in BODY['items']:
     if item['key'] == METADATA['key']:
       item['value'] = METADATA['value']
+      break
+  else:
+    BODY['items'].append(METADATA)
 
   # Build and execute set common instance data request.
   request = service.instances().setMetadata(
