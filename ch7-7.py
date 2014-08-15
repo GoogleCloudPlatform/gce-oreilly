@@ -14,14 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Set instance-level metadata.
+'''Update instance-level metadata.
 Usage:
-  $ python ch7-6.py
+  $ python ch7-7.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python ch7-6.py --help
+  $ python ch7-7.py --help
 
 '''
 
@@ -75,78 +75,43 @@ def main(argv):
 
   # print 'Success! Now add code here.'
 
-  # Set project, zone, and other constants.
-  URL_PREFIX = 'https://www.googleapis.com/compute'
-  API_VERSION = 'v1'
   PROJECT_ID = 'your-project-id'
-  PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
-  INSTANCE_NAME = 'instance-metadata-api'
   ZONE = 'us-central1-a'
-  MACHINE_TYPE = 'n1-standard-1'
-  IMAGE_PROJECT_ID = 'debian-cloud'
-  IMAGE_PROJECT_URL = '%s/%s/projects/%s' % (
-      URL_PREFIX, API_VERSION, IMAGE_PROJECT_ID)
-  IMAGE_NAME = 'debian-7-wheezy-v20140807'
-  METADATA_KEY = 'cloud-storage-bucket'
-  METADATA_VALUE = 'bucket'
-
-  BODY = {
-    'name': INSTANCE_NAME,
-    'tags': {
-      'items': ['frontend']
-    },
-    'machineType': '%s/zones/%s/machineTypes/%s' % (
-        PROJECT_URL, ZONE, MACHINE_TYPE),
-    'disks': [{
-      'boot': True,
-      'type': 'PERSISTENT',
-      'mode': 'READ_WRITE',
-      'zone': '%s/zones/%s' % (PROJECT_URL, ZONE),
-      'initializeParams': {
-        'sourceImage': '%s/global/images/%s' % (IMAGE_PROJECT_URL, IMAGE_NAME)
-      },
-    }],
-    'networkInterfaces': [{
-      'accessConfigs': [{
-        'name': 'External NAT',
-        'type': 'ONE_TO_ONE_NAT'
-      }],
-      'network': PROJECT_URL + '/global/networks/default'
-    }],
-    'scheduling': {
-      'automaticRestart': True,
-      'onHostMaintenance': 'MIGRATE'
-    },
-    'serviceAccounts': [{
-      'email': 'default',
-      'scopes': [
-        'https://www.googleapis.com/auth/compute',
-        'https://www.googleapis.com/auth/devstorage.full_control'
-      ]
-    }],
-    'metadata': {
-      'items': [{
-        'key': METADATA_KEY,
-        'value': METADATA_VALUE
-      }]
-    }
+  INSTANCE_NAME = 'instance-metadata-api'
+  METADATA = {
+    'key': 'cloud-storage-bucket',
+    'value': 'bucket'
   }
 
-  # Build and execute instance insert request.
-  request = service.instances().insert(
-      project=PROJECT_ID, zone=ZONE, body=BODY)
+  # First retrieve the current metadata fingerprint.
+  request = service.instances().get(
+      project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME)
   try:
     response = request.execute()
   except Exception, ex:
     print 'ERROR: ' + str(ex)
     sys.exit()
 
-  # Instance creation is asynchronous so now wait for a DONE status.
+  # Create the body of the request using the response.
+  BODY = response['metadata']
+  for item in BODY['items']:
+    if item['key'] == METADATA['key']:
+      item['value'] = METADATA['value']
+
+  # Build and execute set common instance data request.
+  request = service.instances().setMetadata(
+      project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME, body=BODY)
+  try:
+    response = request.execute()
+  except Exception, ex:
+    print 'ERROR: ' + str(ex)
+    sys.exit()
+
+  # Metadata setting is asynchronous so now wait for response.
   op_name = response['name']
   operations = service.zoneOperations()
   while True:
-    request = operations.get(
-        project=PROJECT_ID, zone=ZONE, operation=op_name)
+    request = operations.get(project=PROJECT_ID, zone=ZONE, operation=op_name)
     try:
       response = request.execute()
     except Exception, ex:
@@ -157,7 +122,7 @@ def main(argv):
       sys.exit()
     status = response['status']
     if status == 'DONE':
-      print 'Instance created.'
+      print 'Instance-level metadata updated.'
       break
     else:
       print 'Waiting for operation to complete. Status: ' + status
