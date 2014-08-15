@@ -2,28 +2,28 @@
 #
 # Copyright (C) 2014 Google Inc.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Get project-level metadata.
+'''Set project-level metadata.
 Usage:
-  $ python ch7-3.py
+  $ python ch7-4.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python ch7-3.py --help
+  $ python ch7-4.py --help
 
-"""
+'''
 
 import argparse
 import httplib2
@@ -76,17 +76,53 @@ def main(argv):
   # print 'Success! Now add code here.'
 
   PROJECT_ID = 'your-project-id'
+  METADATA = {
+    'key': 'cloud-storage-bucket',
+    'value': 'bucket'
+  }
 
-  # Build a request to get the specified project using the Compute Engine API.
+  # First retrieve the current metadata.
   request = service.projects().get(project=PROJECT_ID)
   try:
-    # Execute the request and store the response.
     response = request.execute()
   except Exception, ex:
     print 'ERROR: ' + str(ex)
     sys.exit()
 
-  print response['commonInstanceMetadata']
+  # Use the commonInstanceMetadata dictionary as the body
+  # of the request, and add the new cloud-storage-bucket
+  # metadata entry to the list of items in the dictionary.
+  BODY = response['commonInstanceMetadata']
+  BODY['items'].append(METADATA)
+
+  # Build and execute the set common instance metadata request.
+  request = service.projects().setCommonInstanceMetadata(
+      project=PROJECT_ID, body=BODY)
+  try:
+    response = request.execute()
+  except Exception, ex:
+    print 'ERROR: ' + str(ex)
+    sys.exit()
+
+  # Metadata setting is asynchronous so wait for an operation status of DONE.
+  op_name = response['name']
+  operations = service.globalOperations()
+  while True:
+    request = operations.get(project=PROJECT_ID, operation=op_name)
+    try:
+      response = request.execute()
+    except Exception, ex:
+      print 'ERROR: ' + str(ex)
+      sys.exit()
+    if 'error' in response:
+      print 'ERROR: ' + str(response['error'])
+      sys.exit()
+    status = response['status']
+    if status == 'DONE':
+      print 'Project-level metadata updated.'
+      break
+    else:
+      print 'Waiting for operation to complete. Status: ' + status
 
 
 # For more information on the Compute Engine API you can visit:
