@@ -80,12 +80,13 @@ def main(argv):
   API_VERSION = 'v1'
   PROJECT_ID = 'your-project-id'
   PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
+  INSTANCE_NAME = 'custom-image-api'
   ZONE = 'us-central1-a'
   MACHINE_TYPE = 'n1-standard-1'
   IMAGE_NAME = 'apache-image'
 
   BODY = {
-    'name': 'custom-image-api',
+    'name': INSTANCE_NAME,
     'tags': {
       'items': ['frontend']
     },

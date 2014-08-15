@@ -2,28 +2,28 @@
 #
 # Copyright (C) 2014 Google Inc.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Start an instance with a startup script.
+'''Command-line skeleton application for Compute Engine API.
 Usage:
-  $ python ch7-1.py
+  $ python ch7-6.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python ch7-1.py --help
+  $ python ch7-6.py --help
 
-"""
+'''
 
 import argparse
 import httplib2
@@ -80,14 +80,15 @@ def main(argv):
   API_VERSION = 'v1'
   PROJECT_ID = 'your-project-id'
   PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
-  INSTANCE_NAME = 'startup-script-api'
+  INSTANCE_NAME = 'instance-metadata-api'
   ZONE = 'us-central1-a'
   MACHINE_TYPE = 'n1-standard-1'
   IMAGE_PROJECT_ID = 'debian-cloud'
   IMAGE_PROJECT_URL = '%s/%s/projects/%s' % (
       URL_PREFIX, API_VERSION, IMAGE_PROJECT_ID)
   IMAGE_NAME = 'debian-7-wheezy-v20140807'
-  STARTUP_SCRIPT_URL = 'gs://bucket/object'
+  METADATA_KEY = 'cloud-storage-bucket'
+  METADATA_VALUE = 'bucket'
 
   BODY = {
     'name': INSTANCE_NAME,
@@ -125,8 +126,8 @@ def main(argv):
     }],
     'metadata': {
       'items': [{
-        'key': 'startup-script-url',
-        'value': STARTUP_SCRIPT_URL
+        'key': METADATA_KEY,
+        'value': METADATA_VALUE
       }]
     }
   }

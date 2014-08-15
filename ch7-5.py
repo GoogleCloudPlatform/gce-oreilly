@@ -75,13 +75,14 @@ def main(argv):
 
   # print 'Success! Now add code here.'
 
+  # Set project, zone, and other constants.
   PROJECT_ID = 'your-project-id'
   ZONE = 'us-central1-a'
-  INSTANCE = 'apache-server-staging'
+  INSTANCE_NAME = 'apache-server-staging'
 
-  # Retrieve project-level metadata.
+  # Retrieve the instance resource.
   request = service.instances().get(
-      project=PROJECT_ID, zone=ZONE, instance=INSTANCE)
+      project=PROJECT_ID, zone=ZONE, instance=INSTANCE_NAME)
   try:
     response = request.execute()
   except Exception, ex:
