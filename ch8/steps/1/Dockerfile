@@ -1,18 +1,20 @@
 # DOCKER-VERSION 0.3.4
 
-# We use centos as our base distro for this app. This shows that
-# our container can be built with a different Linux distribution 
-# (centos) than the one hosting the container (debian).
-FROM centos:6.4
+# We use debian as our base distro for this container.
+FROM debian:latest
 
-# Install EPEL (Extra Packages for Enterprise Linix) for Node.js
-RUN rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-# Install git.
-RUN yum install -y git
+# Refresh apt-get.
+RUN apt-get update
+
+# Install some utilities needed by node, npm, and ZeroMQ.
+RUN apt-get install -y curl make g++
+RUN curl -sL https://deb.nodesource.com/setup | bash -
+
 # Install Node.js and npm.
-RUN yum install -y npm
+RUN apt-get install -y npm
+
 # Install ZeroMQ.
-RUN yum install -y zeromq zeromq-devel
+RUN apt-get install -y libzmq-dev
 
 # Set /src as the working directory for this container.
 WORKDIR /src
@@ -21,4 +23,4 @@ WORKDIR /src
 EXPOSE  80
 
 # Run startup command.
-CMD ["node", "/scripts/server.js"]
+CMD ["node", "/src/scripts/server.js"]
