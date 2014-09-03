@@ -7,12 +7,12 @@ RUN apt-get update
 
 # Install some utilities needed by node, npm, and ZeroMQ.
 RUN apt-get install -y curl make g++
-RUN curl -sL https://deb.nodesource.com/setup | bash -
 
 # Install Node.js and npm.
+RUN curl -sL https://deb.nodesource.com/setup | bash -
 RUN apt-get install -y npm
 
-# Install ZeroMQ.
+# Install ZeroMQ libs.
 RUN apt-get install -y libzmq-dev
 
 # Set /src as the working directory for this container.
