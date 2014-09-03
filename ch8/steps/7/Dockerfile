@@ -19,6 +19,10 @@ RUN apt-get install -y libzmq-dev
 # Set /src as the working directory for this container.
 WORKDIR /src
 
+# Install required npm packages globally.
+ADD package.json /src/package.json
+RUN npm install -g
+
 # Open up external access to port 80.
 EXPOSE  80
 
