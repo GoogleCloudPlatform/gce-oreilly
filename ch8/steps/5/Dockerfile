@@ -1,4 +1,3 @@
-# DOCKER-VERSION 0.3.4
 
 # We use debian as our base distro for this container.
 FROM debian:latest
