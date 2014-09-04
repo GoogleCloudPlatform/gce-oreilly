@@ -18,7 +18,7 @@ cmd.on('close', function (code) {
     app.get(/^\/(styles|images|scripts|fonts)\/(.*)/, function (req, res) {
       var type = req.params[0];
       var path = req.params[1];
-      var file = '/src/' + type + '/' + path
+      var file = '/wsk/' + type + '/' + path
       res.sendfile(file);
     });
 
