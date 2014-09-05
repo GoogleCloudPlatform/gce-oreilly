@@ -1,0 +1,6 @@
+version: v1beta1
+containers:
+  - name: perfuse-slave
+    image: marcacohen/perfuse
+    env:
+      - key: HOSTNAME
