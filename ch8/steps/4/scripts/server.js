@@ -32,8 +32,11 @@ var PERFUSE = (function() {
 }());
 
 PERFUSE.cmd.on('close', function (code) {
-  console.log('child process exited with code ' + code);
-  if (code === 0) {
+    console.log('child process exited with code ' + code);
+    if (code !== 0) {
+        console.log('error running prep command');
+        return;
+    }
     if (PERFUSE.hostname == PERFUSE.MASTER) {
         console.log('Master running');
 
