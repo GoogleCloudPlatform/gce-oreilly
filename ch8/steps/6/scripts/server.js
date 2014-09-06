@@ -26,6 +26,7 @@ cmd.on('close', function (code) {
                 WS_PORT: '8080',          // Port num to use for websockets
                 REQ_PORT: '3000',         // Port num to use for pub requests 
                 RES_PORT: '3001',         // Port num to use for pull responses
+                PING_CYCLE: 3,            // Seconds between pings to master
             
                 // Initialize some public variables. 
                 app: express(),
