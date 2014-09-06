@@ -140,103 +140,81 @@ cmd.on('close', function (code) {
                     }
                 }, PERFUSE.PING_CYCLE * 1000);
             });
-    } else {
-        console.log('Slave running');
+        } else {
+            console.log('Slave running');
 
-        // Init ZeroMQ sub socket for receiving pub requests, and
-        // push socket for sending point-to-point responses to master.
-        sock_recv = PERFUSE.zmq.socket('sub');
-        sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
-        sock_send = PERFUSE.zmq.socket('push');
-        sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
+            // Init ZeroMQ sub socket for receiving pub requests, and
+            // push socket for sending point-to-point responses to master.
+            sock_recv = PERFUSE.zmq.socket('sub');
+            sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
+            sock_send = PERFUSE.zmq.socket('push');
+            sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
 
-        // Define behavior for handling test requests.
-        sock_recv.on('message', function(msg){
-            try {
-                console.log('received from master: ' + msg);
-                var msg = JSON.parse(msg);
-                var args = msg.cmd.split(" ");
-                console.log('args: ' + JSON.stringify(args));
-                var cmd = args.shift();
-                var regexp = new RegExp(msg.regexp);
-                var skip = false;
-                // disk regexp: /\s+([\d\.]+)\s+Mbits\/s/;
-                // net regexp:  /\s*READ:.* aggrb=(.*)KB\/s, minb=/;
-                if (msg.type === 'net') {
-                    // Network tests have special semantics - every second
-                    // VM runs a test on the intervening VMs.
-                    var index = 0;
-                    var i = 0;
-                    // This loop sets index to the nominal VM number 
-                    // associated with this VM.
-                    for (i in msg.slaves) {
-                        if (msg.slaves[i] === PERFUSE.hostnum) {
-                            break;
-                        }
-                        index++;
-                    }
-                    // Find the matching VM for this network test (one after
-                    // this one with wrap around logic).
-                    if ((index%2) === 0) {
-                        // Even nominal number so this VM is an active tester.
-                        // Set server to the destination VM number.
-                        var server = 0;
-                        if (i === (msg.slaves.length - 1)) {
-                            // Wrap around, if necessary.
-                            server = 1;
-                        } else {
-                            server = msg.slaves[index + 1];
-                        }
-                        args[1]= args[1].replace('%d', server);
-                    } else {
-                        // Odd nominal number so this is a passive, test
-                        // subject VM. Nothing special to do for this case.
-                        skip = true;
-                    }
-                } else if (msg.type === 'random') {
-                    cmd = msg.type;
-                }
-                if (!skip) {
-                    // Run the perf test command and send results
-                    // to sock_send (ZeroMQ push socket).
-                    run_cmd(PERFUSE.hostnum, cmd, args, regexp, sock_send);
-                }
-            } catch(e) {
-                console.log("error " + e);
-            }  
-        });
-
-        // Run a perf test command. Caller passes command to run,
-        // arguments, regexp to use to extract result, and socket
-        // on which to send JSON encoded result.
-        function run_cmd(hostnum, cmd, args, regexp, sock) {
-            var resp = null;
-            var resp_str = null;
-            console.log('running cmd: ' + cmd + ' w/ args: ' + args);
-            if (cmd == 'random') {
-                resp = { type: 'perf', host: PERFUSE.hostnum, value: Math.random() };
-                resp_str = JSON.stringify(resp);
-                console.log('response: ' + resp_str);
+            // Define behavior for handling test requests.
+            sock_recv.on('message', function(msg){
                 try {
-                    sock.send(resp_str);
+                    console.log('received from master: ' + msg);
+                    var msg = JSON.parse(msg);
+                    var args = msg.cmd.split(" ");
+                    console.log('args: ' + JSON.stringify(args));
+                    var cmd = args.shift();
+                    var regexp = new RegExp(msg.regexp);
+                    var skip = false;
+                    // disk regexp: /\s+([\d\.]+)\s+Mbits\/s/;
+                    // net regexp:  /\s*READ:.* aggrb=(.*)KB\/s, minb=/;
+                    if (msg.type === 'net') {
+                        // Network tests have special semantics - every second
+                        // VM runs a test on the intervening VMs.
+                        var index = 0;
+                        var i = 0;
+                        // This loop sets index to the nominal VM number 
+                        // associated with this VM.
+                        for (i in msg.slaves) {
+                            if (msg.slaves[i] === PERFUSE.hostnum) {
+                                break;
+                            }
+                            index++;
+                        }
+                        // Find the matching VM for this network test (one after
+                        // this one with wrap around logic).
+                        if ((index%2) === 0) {
+                            // Even nominal number so this VM is an active tester.
+                            // Set server to the destination VM number.
+                            var server = 0;
+                            if (i === (msg.slaves.length - 1)) {
+                                // Wrap around, if necessary.
+                                server = 1;
+                            } else {
+                                server = msg.slaves[index + 1];
+                            }
+                            args[1]= args[1].replace('%d', server);
+                        } else {
+                            // Odd nominal number so this is a passive, test
+                            // subject VM. Nothing special to do for this case.
+                            skip = true;
+                        }
+                    } else if (msg.type === 'random') {
+                        cmd = msg.type;
+                    }
+                    if (!skip) {
+                        // Run the perf test command and send results
+                        // to sock_send (ZeroMQ push socket).
+                        run_cmd(PERFUSE.hostnum, cmd, args, regexp, sock_send);
+                    }
                 } catch(e) {
                     console.log("error " + e);
                 }  
-                return;
-            }
+            });
 
-            // Start running test command and process returned data asynchrously.
-            var proc = spawn(cmd, args);
-
-            // Handle data received from test command one line at a time.
-            proc.stdout.on('data', function (data) {
-                console.log('stdout: ' + data);
-                // Match passed regexp against each line of data from test command.
-                var match = regexp.exec(data);
-                console.log('running ' + regexp + ' on ' + data + ' yielded ' + match);
-                if (match) {
-                    // If we match a line, JSON format result and send to master.
-                    resp = { type: 'perf', host: PERFUSE.hostnum, value: match[1] };
+            // Run a perf test command. Caller passes command to run,
+            // arguments, regexp to use to extract result, and socket
+            // on which to send JSON encoded result.
+            function run_cmd(hostnum, cmd, args, regexp, sock) {
+                var resp = null;
+                var resp_str = null;
+                console.log('running cmd: ' + cmd + ' w/ args: ' + args);
+                if (cmd == 'random') {
+                    resp = { type: 'perf', host: PERFUSE.hostnum, value: Math.random() };
                     resp_str = JSON.stringify(resp);
                     console.log('response: ' + resp_str);
                     try {
@@ -244,31 +222,54 @@ cmd.on('close', function (code) {
                     } catch(e) {
                         console.log("error " + e);
                     }  
+                    return;
                 }
-            });
 
-            // Log test exec errors to console.
-            proc.stderr.on('data', function (data) {
-                console.log('stderr: ' + data);
-            });
+                // Start running test command and process returned data asynchrously.
+                var proc = spawn(cmd, args);
+    
+                // Handle data received from test command one line at a time.
+                proc.stdout.on('data', function (data) {
+                    console.log('stdout: ' + data);
+                    // Match passed regexp against each line of data from test command.
+                    var match = regexp.exec(data);
+                    console.log('running ' + regexp + ' on ' + data + ' yielded ' + match);
+                    if (match) {
+                        // If we match a line, JSON format result and send to master.
+                        resp = { type: 'perf', host: PERFUSE.hostnum, value: match[1] };
+                        resp_str = JSON.stringify(resp);
+                        console.log('response: ' + resp_str);
+                        try {
+                            sock.send(resp_str);
+                        } catch(e) {
+                            console.log("error " + e);
+                        }  
+                    }
+                });
 
-            // Handle command completion event.
-            proc.on('close', function (code) {
-                console.log('child process exited with code ' + code);
-            });
-        };
+                // Log test exec errors to console.
+                proc.stderr.on('data', function (data) {
+                    console.log('stderr: ' + data);
+                });
 
-        // Every PING_CYCLE seconds, send my hostnum to the master so
-        // it knows we're still active.
-        setInterval(function() {
-            var ping = JSON.stringify({ type: 'ping', host: PERFUSE.hostnum });
-            try {
-                sock_send.send(ping);
-            } catch(e) {
-                console.log("error " + e);
-            }  
-        }, PERFUSE.PING_CYCLE * 1000);
-  
-        sock_recv.subscribe('');
+                // Handle command completion event.
+                proc.on('close', function (code) {
+                    console.log('child process exited with code ' + code);
+                });
+            };
+
+            // Every PING_CYCLE seconds, send my hostnum to the master so
+            // it knows we're still active.
+            setInterval(function() {
+                var ping = JSON.stringify({ type: 'ping', host: PERFUSE.hostnum });
+                try {
+                    sock_send.send(ping);
+                } catch(e) {
+                    console.log("error " + e);
+                }  
+            }, PERFUSE.PING_CYCLE * 1000);
+      
+            sock_recv.subscribe('');
+        }
     }
 });
