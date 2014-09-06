@@ -32,6 +32,7 @@ cmd.on('close', function (code) {
                 app: express(),
                 zmq: require('zmq'),
                 hostname: os.hostname(),
+                hostnum: os.hostname().split('-')[1],
                 web_sock_server: require('ws').Server,
                 web_sock: null,
                 slaves: {}
@@ -75,7 +76,8 @@ cmd.on('close', function (code) {
                         // the client so that it can be presented to the user.
                         if (PERFUSE.web_sock) {
                             try {
-                                PERFUSE.web_sock.send(msg.toString());
+                                var ev_str = msg.toString();
+                                PERFUSE.web_sock.send(ev_str);
                             } catch(e) {
                                 console.log("error " + e);
                             }  
