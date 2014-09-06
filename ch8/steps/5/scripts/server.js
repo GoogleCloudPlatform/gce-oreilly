@@ -32,7 +32,8 @@ cmd.on('close', function (code) {
                 zmq: require('zmq'),
                 hostname: os.hostname(),
                 web_sock_server: require('ws').Server,
-                web_sock: null
+                web_sock: null,
+                slaves: {}
             }
         }());
 
