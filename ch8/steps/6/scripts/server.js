@@ -26,7 +26,6 @@ cmd.on('close', function (code) {
                 WS_PORT: '8080',          // Port num to use for websockets
                 REQ_PORT: '3000',         // Port num to use for pub requests 
                 RES_PORT: '3001',         // Port num to use for pull responses
-                PING_CYCLE: 3,            // Seconds between pings to master
             
                 // Initialize some public variables. 
                 app: express(),
@@ -66,10 +65,7 @@ cmd.on('close', function (code) {
             sock_recv.on('message', function(msg){
                 try {
                     var ev = JSON.parse(msg);
-                    if (ev.type == 'ping') {
-                        var current_time = parseInt((new Date).getTime() / 1000, 10);
-                        PERFUSE.slaves[ev.host] = current_time;
-                    } else if (ev.type == 'perf') {
+                    if (ev.type == 'perf') {
                         console.log('event received from slave: ' + msg);
                         // We received a perf test response from a slave. If we 
                         // have a websockets connection, forward the result to 
@@ -120,29 +116,6 @@ cmd.on('close', function (code) {
                     console.log('websocket disconnected');
                     PERFUSE.web_sock = null;
                 });
-
-                // Every PING_CYCLE seconds, send list of active slaves to client
-                // so it can cleanup bar chart for any deceased slaves.
-                setInterval(function() {
-                    var current_time = parseInt((new Date).getTime() / 1000, 10);
-                    for (i in PERFUSE.slaves) {
-                        if (PERFUSE.slaves[i] < (current_time - (PERFUSE.PING_CYCLE * 2))) {
-                            delete PERFUSE.slaves[i];
-                        }
-                    }
-                    var keys = [];
-                    for(var k in PERFUSE.slaves) {
-                        keys.push(k);
-                    }
-                    var msg = {type: 'inventory', slaves: keys};
-                    if (PERFUSE.web_sock) {
-                        try {
-                            PERFUSE.web_sock.send(JSON.stringify(msg));
-                        } catch(e) {
-                            console.log("error " + e);
-                        }
-                    }
-                }, PERFUSE.PING_CYCLE * 1000);
             });
         } else {
             console.log('Slave running');
@@ -262,17 +235,6 @@ cmd.on('close', function (code) {
                 });
             };
 
-            // Every PING_CYCLE seconds, send my hostnum to the master so
-            // it knows we're still active.
-            setInterval(function() {
-                var ping = JSON.stringify({ type: 'ping', host: PERFUSE.hostnum });
-                try {
-                    sock_send.send(ping);
-                } catch(e) {
-                    console.log("error " + e);
-                }  
-            }, PERFUSE.PING_CYCLE * 1000);
-      
             sock_recv.subscribe('');
         }
     }

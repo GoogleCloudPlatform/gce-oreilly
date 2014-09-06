@@ -96,11 +96,11 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                 var res = JSON.parse(event.data);
                 if (res.type == 'perf') {
                     var host_num = res.host - 1;
-                    var index = null;
                     var new_val = parseInt(res.host, 10);
+                    var index = null;
  
                     if (res.host in Active) {
-                        index = Active[res.host];
+                        index = Active[res.host]['index'];
                     } else {
                         index = 0;
                         for (i in Data) {
@@ -113,12 +113,15 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                         Data.splice(index, 0, {});
                         Reset_bars = true;
                     }
+                    // Save time we heard from this slave.
+                    var ms = (new Date).getTime();
+                    Active[res.host]['last_heard_from'] = ms;
                     Data[index] = { 
                                       host: res.host, 
                                       value: parseFloat(res.value, 10) 
                                   };
                     for (i in Data) {
-                        Active[Data[i].host] = i;
+                        Active[Data[i].host]['index'] = i;
                     }
                     if (Req_count >= 0) {
                         redraw_bars(Data, Reset_bars, Req_count);
