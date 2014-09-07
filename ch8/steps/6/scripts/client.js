@@ -98,7 +98,6 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                 if (res.type === 'perf') {
                     var ev_slave = parseInt(res.host, 10);
                     var ev_value = parseFloat(res.value, 10); 
-                    var ev_index = -1;
                     var slave_processed = false;
  
                     // Search through Data object, looking for this slave, purging
@@ -106,46 +105,40 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                     // the correct position. If this slave is added and/or any slaves
                     // are expired, make sure the bars are redrawn.
                     var cur_time = (new Date).getTime();
-                    var index = 0;
-                    var len = Data.length;
-                    while (len--) {
+                    var index = Data.length;
+                    while (index--) {
                         var i = len;
                         var cur_slave = parseInt(Data[i].host, 10);
-                        var last_heard_from = Active[Data[i].host]['last_heard_from'];
+                        var last_heard_from = Active[Data[i].host];
 
                         if ((cur_slave !== ev_slave) &&
                             ((cur_time - last_heard_from) > (Expiration_delay * 1000))) {
                             console.log('slave ' + cur_slave + ' expired');
                             delete Active[cur_slave];
-                            Data.splice(i, 1);
+                            Data.splice(index, 1);
                             Reset_bars = true;
                             continue;
                         } 
                         if (!slave_processed) {
-                            var cur_slave = parseInt(Data[i].host, 10);
                             if (cur_slave === ev_slave) {
                                 console.log('found slave ' + res.host);
-                                ev_index = index;
+                                Data[index] = { host: res.host, value: ev_value };
                                 slave_processed = true; 
-                            } else if (cur_slave > ev_slave) {
+                            } else if (cur_slave < ev_slave) {
                                 console.log('inserting slave ' + res.host);
-                                Data.splice(index, 0, {});
-                                ev_index = index;
+                                Data.splice(index + 1, 0, {host: res.host, value: ev_value});
                                 slave_processed = true; 
                                 Reset_bars = true;
                             }
                         }
-                        index++;
                     } 
                     if (!slave_processed) {
                         console.log('appending slave ' + res.host);
-                        Data[index] = {};
-                        ev_index = index;
+                        Data.splice(0, 0, {host: res.host, value: ev_value});
                         Reset_bars = true;
                     }
             
-                    Data[ev_index] = { host: res.host, value: ev_value }; 
-                    Active[res.host] = { index: ev_index, last_heard_from: cur_time }; 
+                    Active[res.host] = cur_time; 
 
                     if (Req_count >= 0) {
                         redraw_bars(Data, Reset_bars, Req_count);
