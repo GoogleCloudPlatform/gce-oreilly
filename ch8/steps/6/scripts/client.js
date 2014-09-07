@@ -72,6 +72,7 @@ var Data = [];
 var Active = {};
 var Max_host = 0;
 var Reset_bars = false;
+var Expiration_delay = 5;
 
 Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
     var id = 'perf-graph';
@@ -94,35 +95,52 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
             Web_sock = new WebSocket(url);
             Web_sock.onmessage = function(event) {
                 var res = JSON.parse(event.data);
-                if (res.type == 'perf') {
-                    var host_num = res.host - 1;
-                    var new_val = parseInt(res.host, 10);
-                    var index = null;
+                if (res.type === 'perf') {
+                    var ev_slave = parseInt(res.host, 10);
+                    var ev_value = parseFloat(res.value, 10)}; 
+                    var ev_index = -1;
+                    var slave_processed = false;
  
-                    if (res.host in Active) {
-                        index = Active[res.host]['index'];
-                    } else {
-                        index = 0;
-                        for (i in Data) {
-                            var old_val = parseInt(Data[i].host, 10);
-                            if (old_val > new_val) {
-                                break;
+                    // Search through Data object, looking for this slave, purging
+                    // expired slaves as we go. If not found, insert this slave in
+                    // the correct position. If this slave is added and/or any slaves
+                    // are expired, make sure the bars are redrawn.
+                    var cur_time = (new Date).getTime();
+                    var index = 0;
+                    for (i in Data) {
+                        var last_heard_from = Active[Data[i].host]['last_heard_from'];
+                        if ((cur_time - last_heard_from) > (Expiration_delay * 1000)) {
+                            console.log('slave ' + res.host + ' expired');
+                            delete Active[res.host];
+                            delete Data[i];
+                            Reset_bars = true;
+                            continue;
+                        } 
+                        if (!slave_processed) {
+                            var cur_slave = parseInt(Data[i].host, 10);
+                            if (cur_slave === ev_slave) {
+                                console.log('found slave ' + res.host);
+                                ev_index = index;
+                                slave_processed = true; 
+                            } else if (cur_slave > ev_slave) {
+                                console.log('inserting slave ' + res.host);
+                                Data.splice(index, 0, {});
+                                ev_index = index;
+                                slave_processed = true; 
+                                Reset_bars = true;
                             }
-                            index++;
                         }
-                        Data.splice(index, 0, {});
+                        index++;
+                    } 
+                    if (!slave_processed) {
+                        Data[index] = {};
+                        ev_index = index;
                         Reset_bars = true;
                     }
-                    // Save time we heard from this slave.
-                    var ms = (new Date).getTime();
-                    Active[res.host]['last_heard_from'] = ms;
-                    Data[index] = { 
-                                      host: res.host, 
-                                      value: parseFloat(res.value, 10) 
-                                  };
-                    for (i in Data) {
-                        Active[Data[i].host]['index'] = i;
-                    }
+            
+                    Data[ev_index] = { host: res.host, value: ev_value }; 
+                    Active[res.host] = { index: ev_index, last_heard_from: cur_time }; 
+
                     if (Req_count >= 0) {
                         redraw_bars(Data, Reset_bars, Req_count);
                         Reset_bars = false;
