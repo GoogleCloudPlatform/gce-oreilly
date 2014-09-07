@@ -107,12 +107,17 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                     // are expired, make sure the bars are redrawn.
                     var cur_time = (new Date).getTime();
                     var index = 0;
-                    for (i in Data) {
+                    var len = Data.length;
+                    while (len--) {
+                        var i = len;
+                        var cur_slave = parseInt(Data[i].host, 10);
                         var last_heard_from = Active[Data[i].host]['last_heard_from'];
-                        if ((cur_time - last_heard_from) > (Expiration_delay * 1000)) {
-                            console.log('slave ' + res.host + ' expired');
-                            delete Active[res.host];
-                            delete Data[i];
+
+                        if ((cur_slave !== ev_slave) &&
+                            ((cur_time - last_heard_from) > (Expiration_delay * 1000))) {
+                            console.log('slave ' + cur_slave + ' expired');
+                            delete Active[cur_slave];
+                            Data.splice(i, 1);
                             Reset_bars = true;
                             continue;
                         } 
@@ -133,6 +138,7 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                         index++;
                     } 
                     if (!slave_processed) {
+                        console.log('appending slave ' + res.host);
                         Data[index] = {};
                         ev_index = index;
                         Reset_bars = true;
