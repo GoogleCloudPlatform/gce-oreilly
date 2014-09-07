@@ -62,7 +62,7 @@ function MyCntrl($scope) {
  * Perfuse class.
  * @constructor
  */
-var Perfuse = function() { };
+var Perfuse = function() {};
 var Perf_state = false;
 var Master = 'perfuse-master';
 var Web_sock = null;
@@ -97,7 +97,7 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                 var res = JSON.parse(event.data);
                 if (res.type === 'perf') {
                     var ev_slave = parseInt(res.host, 10);
-                    var ev_value = parseFloat(res.value, 10)}; 
+                    var ev_value = parseFloat(res.value, 10); 
                     var ev_index = -1;
                     var slave_processed = false;
  
@@ -163,4 +163,3 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
         document.getElementById('start-test-button').innerHTML = 'Stop Test';
     }
 }
-
