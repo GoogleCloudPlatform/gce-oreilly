@@ -72,7 +72,7 @@ var Data = [];
 var Active = {};
 var Max_host = 0;
 var Reset_bars = false;
-var Expiration_delay = 5;
+var Expiration_delay = 10;
 
 Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
     var id = 'perf-graph';
