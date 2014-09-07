@@ -107,9 +107,8 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                     var cur_time = (new Date).getTime();
                     var index = Data.length;
                     while (index--) {
-                        var i = len;
-                        var cur_slave = parseInt(Data[i].host, 10);
-                        var last_heard_from = Active[Data[i].host];
+                        var cur_slave = parseInt(Data[index].host, 10);
+                        var last_heard_from = Active[Data[index].host];
 
                         if ((cur_slave !== ev_slave) &&
                             ((cur_time - last_heard_from) > (Expiration_delay * 1000))) {
