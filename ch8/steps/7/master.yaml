@@ -1,9 +1,9 @@
-version: v1beta1
+version: v1beta2
 containers:
   - name: perfuse-master
     image: marcacohen/perfuse
     env:
-      - key: HOSTNAME
+      - name: HOSTNAME
         value: perfuse-master
     ports:
       - name: web
