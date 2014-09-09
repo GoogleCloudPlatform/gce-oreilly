@@ -118,9 +118,9 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
     // Init ZeroMQ sub socket for receiving pub requests, and
     // push socket for sending point-to-point responses to master.
     sock_recv = PERFUSE.zmq.socket('sub');
-    sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
+    sock_recv.connect('tcp://' + PERFUSE.MASTER + ':' + PERFUSE.REQ_PORT);
     sock_send = PERFUSE.zmq.socket('push');
-    sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
+    sock_send.connect('tcp://' + PERFUSE.MASTER + ':' + PERFUSE.RES_PORT);
 
     // Define behavior for handling test requests.
     sock_recv.on('message', function(msg){
