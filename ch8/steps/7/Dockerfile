@@ -19,6 +19,10 @@ RUN apt-get install -y libzmq-dev
 ADD package.json /package.json
 RUN npm install
 
+# Add current step 7 contents and wsk contents into container.
+ADD 7 /src
+ADD wsk /wsk
+
 # Set /src as the working directory for this container.
 WORKDIR /src
 
