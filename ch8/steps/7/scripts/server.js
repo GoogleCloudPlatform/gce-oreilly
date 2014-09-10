@@ -12,6 +12,7 @@ var PERFUSE = (function() {
     // Initialize some private variables. 
     var os = require('os');
     var express = require('express');
+    console.log('IMAGE CHANGED!!!');
 
     // Return object encapsulating public variables.
     return {
