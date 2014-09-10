@@ -1,0 +1,13 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1beta1",
+  "id": "perfuse-p2p",
+  "port": 3001,
+  "containerPort": 3001,
+  "labels": {
+     "name": "perfuse-master"
+  },
+  "selector": {
+     "name": "perfuse-master"
+  }
+}
