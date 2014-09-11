@@ -9,6 +9,7 @@ function route(app, regex, prefix) {
 }
 
 var os = require('os');
+var child_process = require('child_process');
 var ifaces = os.networkInterfaces();
 var ipaddr = ifaces['eth0'][0].address;
 console.log('ipaddr', ipaddr);
@@ -216,7 +217,7 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
         }
 
         // Start running test command and process returned data asynchrously.
-        var proc = spawn(cmd, args);
+        var proc = child_process.spawn(cmd, args, {env: {NODE_ENV: 'production'}});
 
         // Handle data received from test command one line at a time.
         proc.stdout.on('data', function (data) {

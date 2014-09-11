@@ -15,6 +15,10 @@ RUN apt-get install -y npm
 # Install ZeroMQ libs.
 RUN apt-get install -y libzmq-dev
 
+# Install fio disk perf test tool.
+RUN apt-get install -y fio
+RUN mkdir /tmp/fio-test
+
 # Install required npm packages.
 ADD package.json /package.json
 RUN npm install
