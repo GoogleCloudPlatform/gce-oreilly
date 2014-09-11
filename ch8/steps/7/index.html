@@ -32,6 +32,9 @@
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/perfuse.css">
     <!-- endbuild -->
+
+  <link rel="import" href="bower_components/ContainerCamp/kube-cluster.html">
+
   </head>
   <body>
     <header class="app-bar promote-layer">
@@ -80,6 +83,10 @@
       </div>
       <div id="perf-graph" style="display: none"></div>
     </main>
+
+    <kube-cluster baseurl="https://kubernetes.invalid"
+                  auth="Basic YWRtaW46YXNrR094TExwbzZYTVBmVwo=">
+    </kube-cluster>
 
     <!-- build:js scripts/main.min.js -->
     <script src="scripts/main.js"></script>

@@ -49,7 +49,8 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
         res.sendfile('/src/index.html');
     });
 
-    // Serve js, css, and image files.
+    // Serve js, css, image, and Polymer files.
+    route(PERFUSE.app, /^\/(bower_components)\/(.*)/, '/src/');
     route(PERFUSE.app, /^\/(scripts)\/(.*)/, '/src/');
     route(PERFUSE.app, /^\/(styles|styleguide|images|fonts)\/(.*)/, '/wsk/');
 
