@@ -129,11 +129,12 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
     sock_send = PERFUSE.zmq.socket('push');
     //sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
     //sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
-    console.log('connecting to pubsub @', PERFUSE.pubsub_port, 'and p2p @', PERFUSE.p2p_port)
     if (PERFUSE.pubsub_port && PERFUSE.p2p_port) {
+      console.log('connecting to pubsub @', PERFUSE.pubsub_port, 'and p2p @', PERFUSE.p2p_port)
       sock_recv.connect(PERFUSE.pubsub_port);
       sock_send.connect(PERFUSE.p2p_port);
     } else {
+      console.log('connecting to pubsub and p2p @', PERFUSE.MASTER);
       sock_recv.connect('tcp://' + PERFUSE.MASTER + ':' + PERFUSE.REQ_PORT);
       sock_send.connect('tcp://' + PERFUSE.MASTER + ':' + PERFUSE.RES_PORT);
     }
