@@ -12,7 +12,6 @@ var PERFUSE = (function() {
     // Initialize some private variables. 
     var os = require('os');
     var express = require('express');
-    console.log('IMAGE CHANGED!!!');
 
     // Return object encapsulating public variables.
     return {
@@ -30,7 +29,9 @@ var PERFUSE = (function() {
         hostnum: os.hostname().split('-')[1],
         web_sock_server: require('ws').Server,
         web_sock: null,
-        slaves: {}
+        slaves: {},
+        pubsub_port: process.env.PERFUSE_PUBSUB_PORT,
+        p2p_port: process.env.PERFUSE_P2P_PORT
     }
 }());
 
@@ -119,9 +120,12 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
     // Init ZeroMQ sub socket for receiving pub requests, and
     // push socket for sending point-to-point responses to master.
     sock_recv = PERFUSE.zmq.socket('sub');
-    sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
     sock_send = PERFUSE.zmq.socket('push');
-    sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
+    //sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
+    //sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
+    console.log('connecting to pubsub @', PERFUSE.pubsub_port, 'and p2p @', PERFUSE.p2p_port)
+    sock_recv.connect(PERFUSE.pubsub_port);
+    sock_send.connect(PERFUSE.p2p_port);
 
     // Define behavior for handling test requests.
     sock_recv.on('message', function(msg){
