@@ -96,7 +96,7 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
             Web_sock.onmessage = function(event) {
                 var res = JSON.parse(event.data);
                 if (res.type === 'perf') {
-                    var ev_slave = parseInt(res.host, 10);
+                    var ev_slave = res.host;
                     var ev_value = parseFloat(res.value, 10); 
                     var slave_processed = false;
  
@@ -107,7 +107,7 @@ Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
                     var cur_time = (new Date).getTime();
                     var index = Data.length;
                     while (index--) {
-                        var cur_slave = parseInt(Data[index].host, 10);
+                        var cur_slave = Data[index].host;
                         var last_heard_from = Active[Data[index].host];
 
                         if ((cur_slave !== ev_slave) &&
