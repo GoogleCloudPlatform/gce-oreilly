@@ -8,6 +8,11 @@ function route(app, regex, prefix) {
     });
 }
 
+var os = require('os');
+var ifaces = os.networkInterfaces();
+var ipaddr = ifaces['eth0'][0].address;
+console.log('ipaddr', ipaddr);
+
 var PERFUSE = (function() {
     // Initialize some private variables. 
     var os = require('os');
@@ -27,6 +32,7 @@ var PERFUSE = (function() {
         zmq: require('zmq'),
         hostname: os.hostname(),
         hostnum: os.hostname().split('-')[1],
+        ipaddr: ipaddr,
         web_sock_server: require('ws').Server,
         web_sock: null,
         slaves: {},
@@ -121,6 +127,8 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
     // push socket for sending point-to-point responses to master.
     sock_recv = PERFUSE.zmq.socket('sub');
     sock_send = PERFUSE.zmq.socket('push');
+    //sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
+    //sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
     console.log('connecting to pubsub @', PERFUSE.pubsub_port, 'and p2p @', PERFUSE.p2p_port)
     if (PERFUSE.pubsub_port && PERFUSE.p2p_port) {
       sock_recv.connect(PERFUSE.pubsub_port);
@@ -194,7 +202,7 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
         var resp_str = null;
         console.log('running cmd: ' + cmd + ' w/ args: ' + args);
         if (cmd == 'random') {
-            resp = { type: 'perf', host: PERFUSE.hostnum, value: Math.random() };
+            resp = { type: 'perf', host: PERFUSE.ipaddr, value: Math.random() };
             resp_str = JSON.stringify(resp);
             console.log('response: ' + resp_str);
             try {
@@ -216,7 +224,7 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
             console.log('running ' + regexp + ' on ' + data + ' yielded ' + match);
             if (match) {
                 // If we match a line, JSON format result and send to master.
-                resp = { type: 'perf', host: PERFUSE.hostnum, value: match[1] };
+                resp = { type: 'perf', host: PERFUSE.ipaddr, value: match[1] };
                 resp_str = JSON.stringify(resp);
                 console.log('response: ' + resp_str);
                 try {
