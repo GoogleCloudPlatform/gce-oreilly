@@ -14,11 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-USAGE="cluster.sh start|stop|adddisk|deldisk beg end"
+USAGE="cluster.sh start|stop beg end"
 ZONE="--zone us-central1-a"
 TYPE="--machine-type f1-micro"
 MTCE="--maintenance-policy TERMINATE"
 META_INIT="--metadata-from-file google-container-manifest="
+IMAGE="--image container-vm-v20140826 --image-project google-containers"
 QUIET="-q"
 PREFIX="perfuse-"
 
@@ -46,16 +47,10 @@ do
     META="${META_INIT}$ID.yaml"
   fi
 
-  if [ "$OP" = "adddisk" ]
+  if [ "$OP" = "start" ]
   then
-    gcloud compute disks create $ID --source-snapshot perfuse $ZONE $QUIET &
-  elif [ "$OP" = "deldisk" ]
-  then
-    gcloud compute disks delete $ID $ZONE $QUIET &
-  elif [ "$OP" = "start" ]
-  then
-    gcloud compute instances create $ID --disk name=$ID boot=yes $META $ZONE $TYPE $MTCE \
-      $QUIET &
+    gcloud compute instances create $ID $META $ZONE $TYPE $MTCE \
+      $IMAGE $QUIET &
   elif [ "$OP" = "stop" ]
   then
     gcloud compute instances delete $ID $ZONE $QUIET &
