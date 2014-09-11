@@ -18,6 +18,7 @@ var PERFUSE = (function() {
     // Initialize some private variables. 
     var os = require('os');
     var express = require('express');
+    var auth = express.basicAuth('super', 'secret');
 
     // Return object encapsulating public variables.
     return {
@@ -29,6 +30,7 @@ var PERFUSE = (function() {
         RES_PORT: '3001',         // Port num to use for pull responses
     
         // Initialize some public variables. 
+        auth: auth,
         app: express(),
         zmq: require('zmq'),
         hostname: os.hostname(),
@@ -42,11 +44,12 @@ var PERFUSE = (function() {
     }
 }());
 
+
 if (PERFUSE.hostname === PERFUSE.MASTER) {
     console.log('Master running');
 
     // Serve main page.
-    PERFUSE.app.get('/', function(req, res){
+    PERFUSE.app.get('/', PERFUSE.auth, function(req, res){
         res.sendfile('/src/index.html');
     });
 
