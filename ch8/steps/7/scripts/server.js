@@ -121,11 +121,14 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
     // push socket for sending point-to-point responses to master.
     sock_recv = PERFUSE.zmq.socket('sub');
     sock_send = PERFUSE.zmq.socket('push');
-    //sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
-    //sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
     console.log('connecting to pubsub @', PERFUSE.pubsub_port, 'and p2p @', PERFUSE.p2p_port)
-    sock_recv.connect(PERFUSE.pubsub_port);
-    sock_send.connect(PERFUSE.p2p_port);
+    if (PERFUSE.pubsub_port && PERFUSE.p2p_port) {
+      sock_recv.connect(PERFUSE.pubsub_port);
+      sock_send.connect(PERFUSE.p2p_port);
+    } else {
+      sock_recv.connect('tcp://' + PERFUSE.MASTER + ':' + PERFUSE.REQ_PORT);
+      sock_send.connect('tcp://' + PERFUSE.MASTER + ':' + PERFUSE.RES_PORT);
+    }
 
     // Define behavior for handling test requests.
     sock_recv.on('message', function(msg){
