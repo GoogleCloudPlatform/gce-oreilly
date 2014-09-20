@@ -65,6 +65,7 @@ var Perfuse = function() {
     this.perfState = false;
     this.webSock = null;
     this.repeatingTests = null;
+    this.expirationDelay = 10;
     this.reqCount = 0;
     this.data = [];
     this.active = {};
@@ -75,7 +76,7 @@ Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
     var id = 'perf-graph';
     if (this.perfState) {
         clearInterval(this.repeatingTests);
-        del_bar_chart();
+        perfuse_vis.del_bar_chart();
         document.getElementById(id).style.display = 'none';
         this.perfState = false;
         this.webSock.close();
@@ -85,7 +86,7 @@ Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
         document.getElementById(id).style.display = 'block';
         this.data = [];
         this.resetBars = true;
-        gen_bar_chart(label);
+        perfuse_vis.gen_bar_chart(label);
         this.perfState = true;
         if (('WebSocket' in window) && this.ipAddr) {
             var url = 'ws://' + this.ipAddr + ':' + this.wsPort + '/';
@@ -108,7 +109,7 @@ Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
                         var last_heard_from = this.active[this.data[index].host];
 
                         if ((cur_slave !== ev_slave) &&
-                            ((cur_time - last_heard_from) > (Expiration_delay * 1000))) {
+                            ((cur_time - last_heard_from) > (this.expirationDelay * 1000))) {
                             console.log('slave ' + cur_slave + ' expired');
                             delete this.active[cur_slave];
                             this.data.splice(index, 1);
@@ -137,7 +138,7 @@ Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
                     this.active[res.host] = cur_time; 
 
                     if (this.reqCount >= 0) {
-                        redraw_bars(this.data, this.resetBars, this.reqCount);
+                        perfuse_vis.redraw_bars(this.data, this.resetBars, this.reqCount);
                         this.resetBars = false;
                     }
                 }
