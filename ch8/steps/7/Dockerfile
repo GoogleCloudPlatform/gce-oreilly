@@ -15,18 +15,18 @@ RUN apt-get install -y npm
 # Install ZeroMQ libs.
 RUN apt-get install -y libzmq-dev
 
-# Install fio disk perf test tool.
-RUN apt-get install -y fio
+# Install some perf test tools.
+RUN apt-get install -y fio iperf
 RUN mkdir /tmp/fio-test
 
 # Install required npm packages.
 ADD package.json /package.json
 RUN npm install
 
-# Add current step 7 contents and wsk contents into container.
+# Add step 7 contents and wsk contents into container.
 ADD 7 /src
-ADD 7/bower_components /src/bower_components
 ADD wsk /wsk
+#ADD 7/bower_components /src/bower_components
 
 # Set /src as the working directory for this container.
 WORKDIR /src
