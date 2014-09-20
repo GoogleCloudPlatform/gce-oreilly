@@ -91,6 +91,7 @@ Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
             var url = 'ws://' + this.ipAddr + ':' + this.wsPort + '/';
             this.webSock = new WebSocket(url);
             this.webSock.onmessage = function(event) {
+                console.log('event received: ' + event);
                 var res = JSON.parse(event.data);
                 if (res.type === 'perf') {
                     var ev_slave = parseInt(res.host, 10);
