@@ -106,7 +106,7 @@ Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
                     var index = this.data.length;
                     while (index--) {
                         var cur_slave = parseInt(this.data[index].host, 10);
-                        var last_heard_from = this.active[tbis.data[index].host];
+                        var last_heard_from = this.active[this.data[index].host];
 
                         if ((cur_slave !== ev_slave) &&
                             ((cur_time - last_heard_from) > (Expiration_delay * 1000))) {
