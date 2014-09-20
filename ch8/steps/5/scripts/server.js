@@ -12,6 +12,7 @@ var PERFUSE = (function() {
     // Initialize some private variables. 
     var os = require('os');
     var express = require('express');
+    var spawn = require('child_process').spawn;
 
     // Return object encapsulating public variables.
     return {
@@ -29,7 +30,8 @@ var PERFUSE = (function() {
         hostnum: os.hostname().split('-')[1],
         web_sock_server: require('ws').Server,
         web_sock: null,
-        slaves: {}
+        slaves: {},
+        spawn: spawn
     }
 }());
 
@@ -198,7 +200,7 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
         }
 
         // Start running test command and process returned data asynchrously.
-        var proc = spawn(cmd, args);
+        var proc = PERFUSE.spawn(cmd, args);
 
         // Handle data received from test command one line at a time.
         proc.stdout.on('data', function (data) {

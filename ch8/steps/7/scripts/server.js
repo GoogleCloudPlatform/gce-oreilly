@@ -8,17 +8,16 @@ function route(app, regex, prefix) {
     });
 }
 
-var os = require('os');
-var child_process = require('child_process');
-var ifaces = os.networkInterfaces();
-var ipaddr = ifaces['eth0'][0].address;
-console.log('ipaddr', ipaddr);
 
 var PERFUSE = (function() {
     // Initialize some private variables. 
     var os = require('os');
     var express = require('express');
+    var spawn = require('child_process').spawn;
     var auth = express.basicAuth('super', 'secret');
+    var ifaces = os.networkInterfaces();
+    var ipaddr = ifaces['eth0'][0].address;
+    console.log('ipaddr', ipaddr);
 
     // Return object encapsulating public variables.
     return {
@@ -39,6 +38,7 @@ var PERFUSE = (function() {
         web_sock_server: require('ws').Server,
         web_sock: null,
         slaves: {},
+        spawn: spawn,
         pubsub_port: process.env.PERFUSE_PUBSUB_PORT,
         p2p_port: process.env.PERFUSE_P2P_PORT
     }
@@ -132,9 +132,8 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
     // push socket for sending point-to-point responses to master.
     sock_recv = PERFUSE.zmq.socket('sub');
     sock_send = PERFUSE.zmq.socket('push');
-    //sock_recv.connect('tcp://perfuse-dev' + ':' + PERFUSE.REQ_PORT);
-    //sock_send.connect('tcp://perfuse-dev' + ':' + PERFUSE.RES_PORT);
-    if (PERFUSE.pubsub_port && PERFUSE.p2p_port) {
+    if ((typeof PERFUSE.pubsub_port != 'undefined') && 
+        (typeof PERFUSE.p2p_port != 'undefined') {
       console.log('connecting to pubsub @', PERFUSE.pubsub_port, 'and p2p @', PERFUSE.p2p_port)
       sock_recv.connect(PERFUSE.pubsub_port);
       sock_send.connect(PERFUSE.p2p_port);
@@ -220,7 +219,7 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
         }
 
         // Start running test command and process returned data asynchrously.
-        var proc = child_process.spawn(cmd, args, {env: {NODE_ENV: 'production'}});
+        var proc = PERFUSE.spawn(cmd, args);
 
         // Handle data received from test command one line at a time.
         proc.stdout.on('data', function (data) {
