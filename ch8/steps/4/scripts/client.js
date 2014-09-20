@@ -59,8 +59,7 @@ function MyCntrl($scope) {
  * Perfuse class.
  * @constructor
  */
-
-var Perfuse = function() { 
+var Perfuse = function() {
     this.wsPort = '8080';
     this.ipAddr = location.host.split(':')[0];
     this.perfState = false;
