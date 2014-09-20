@@ -68,10 +68,15 @@
               placeholder="Enter perf test command">
           </div>
           <div align="left">
+            <label>Regex</label>
+            <input class="form" type="text" size="55" ng-model="test.regexp" 
+              placeholder="Enter regular express for parsing test output">
+          </div>
+          <div align="left">
             <label>Interval</label>
             <input class="form" type="text" ng-model="test.interval" size="2"  
               placeholder="Enter refresh interval">
-          </di>
+          </div>
           <div align="left">
             <button class="button" id="start-test-button" 
               ng-click="start_test()">Start Test</button>
@@ -99,12 +104,8 @@
     <script type="text/javascript" src="scripts/vis.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script>
-      var perfuse = null;
-      var perfuse_vis = null;
-      (function () {
-        perfuse = new Perfuse();
-        perfuse_vis = new Perfuse_vis();
-      })();
+      var perfuse = new Perfuse();
+      var perfuse_vis = new Perfuse_vis();
     </script>
     <!-- Built with love using Web Starter Kit -->
   </body>
