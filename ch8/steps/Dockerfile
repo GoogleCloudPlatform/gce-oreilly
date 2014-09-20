@@ -15,6 +15,9 @@ RUN apt-get install -y npm
 # Install ZeroMQ libs.
 RUN apt-get install -y libzmq-dev
 
+# Install some perf test tools.
+RUN apt-get install -y fio iperf
+
 # Install required npm packages.
 ADD package.json /package.json
 RUN npm install
