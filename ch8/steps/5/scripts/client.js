@@ -64,13 +64,11 @@ function MyCntrl($scope) {
  */
 var Perfuse = function() {};
 var Perf_state = false;
-var Master = 'perfuse-master';
 var Web_sock = null;
 var Repeating_tests = null;
 var Req_count = 0;
 var Data = [];
 var Active = {};
-var Max_host = 0;
 var Reset_bars = false;
 var Expiration_delay = 10;
 

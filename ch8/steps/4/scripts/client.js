@@ -5,9 +5,6 @@
  * and shows real-time results of running performance tests.
  */
 
-var WS_PORT = '8080';
-var IP_ADDR = location.host.split(':')[0];
-
 function MyCntrl($scope) {
     $scope.tests = [
         {
@@ -54,7 +51,7 @@ function MyCntrl($scope) {
         var interval = $scope.test.interval;
         var regexp = $scope.test.regexp;
         var label = $scope.test.label;
-        Perfuse.perfToggle(name, cmd, interval, regexp, label);
+        perfuse.perfToggle(name, cmd, interval, regexp, label);
     };
 }
 
@@ -62,84 +59,87 @@ function MyCntrl($scope) {
  * Perfuse class.
  * @constructor
  */
-var Perfuse = function() { };
-var Perf_state = false;
-var Master = 'perfuse-master';
-var Web_sock = null;
-var Repeating_tests = null;
-var Req_count = 0;
-var Data = [];
-var Active = {};
-var Max_host = 0;
-var Reset_bars = false;
 
-Perfuse.perfToggle = function (type, cmd, interval, regexp, label) {
+var Perfuse = function() { 
+    this.wsPort = '8080';
+    this.ipAddr = location.host.split(':')[0];
+    this.perfState = false;
+    this.webSock = null;
+    this.repeatingTests = null;
+    this.reqCount = 0;
+    this.data = [];
+    this.active = {};
+    this.resetBars = false;
+};
+
+Perfuse.prototype.perfToggle = function (type, cmd, interval, regexp, label) {
     var id = 'perf-graph';
-    if (Perf_state) {
-        clearInterval(Repeating_tests);
+    if (this.perfState) {
+        clearInterval(this.repeatingTests);
         //del_bar_chart();
         document.getElementById(id).style.display = 'none';
-        Perf_state = false;
-        Web_sock.close();
-        Req_count = 0;
+        this.perfState = false;
+        this.webSock.close();
+        this.reqCount = 0;
         document.getElementById('start-test-button').innerHTML = 'Start Test';
     } else { 
         document.getElementById(id).style.display = 'block';
-        Data = [];
-        Reset_bars = true;
+        this.data = [];
+        this.resetBars = true;
         //gen_bar_chart(label);
-        Perf_state = true;
-        if (('WebSocket' in window) && IP_ADDR) {
-            var url = 'ws://' + IP_ADDR + ':' + WS_PORT + '/';
-            Web_sock = new WebSocket(url);
-            Web_sock.onmessage = function(event) {
+        this.perfState = true;
+        if (('WebSocket' in window) && this.ipAddr) {
+            var url = 'ws://' + this.ipAddr + ':' + this.wsPort + '/';
+            this.webSock = new WebSocket(url);
+            this.webSock.onmessage = function(event) {
                 var res = JSON.parse(event.data);
                 if (res.type == 'perf') {
                     var host_num = res.host - 1;
                     var index = null;
                     var new_val = parseInt(res.host, 10);
  
-                    if (res.host in Active) {
-                        index = Active[res.host];
+                    if (res.host in this.active) {
+                        index = this.active[res.host];
                     } else {
                         index = 0;
-                        for (i in Data) {
-                            var old_val = parseInt(Data[i].host, 10);
+                        for (i in this.data) {
+                            var old_val = parseInt(this.data[i].host, 10);
                             if (old_val > new_val) {
                                 break;
                             }
                             index++;
                         }
-                        Data.splice(index, 0, {});
-                        Reset_bars = true;
+                        this.data.splice(index, 0, {});
+                        this.resetBars = true;
                     }
-                    Data[index] = { 
+                    this.data[index] = { 
                                       host: res.host, 
                                       value: parseFloat(res.value, 10) 
                                   };
-                    for (i in Data) {
-                        Active[Data[i].host] = i;
+                    for (i in this.data) {
+                        this.active[this.data[i].host] = i;
                     }
-                    if (Req_count >= 0) {
-                        //redraw_bars(Data, Reset_bars, Req_count);
-                        Reset_bars = false;
+                    if (this.reqCount >= 0) {
+                        //redraw_bars(this.data, this.resetBars, this.reqCount);
+                        this.resetBars = false;
                     }
                 }
-            }
-            Web_sock.onopen = function() {
+            }.bind(this);
+
+            this.webSock.onopen = function() {
                 var req = {};
                 req.type = type;
                 req.cmd = cmd;
                 req.regexp = regexp;
                 var req_str = JSON.stringify(req);
-                Web_sock.send(req_str);
-                Repeating_tests = setInterval(function() {
-                    Req_count++;
-                    Web_sock.send(req_str);
-                }, interval * 1000);
-            }
+                this.webSock.send(req_str);
+                this.repeatingTests = setInterval(function() {
+                    this.reqCount++;
+                    this.webSock.send(req_str);
+                }.bind(this), interval * 1000);
+            }.bind(this);
         }
         document.getElementById('start-test-button').innerHTML = 'Stop Test';
     }
-}
+};
 
