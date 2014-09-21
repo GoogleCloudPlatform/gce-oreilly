@@ -17,7 +17,6 @@ RUN apt-get install -y libzmq-dev
 
 # Install some perf test tools.
 RUN apt-get install -y fio iperf
-RUN mkdir /tmp/fio-test
 
 # Install required npm packages.
 ADD package.json /package.json
