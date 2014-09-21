@@ -14,6 +14,9 @@ var PERFUSE = (function() {
     var express = require('express');
     var spawn = require('child_process').spawn;
 
+    // Start iperf server running in background.
+    spawn('iperf', ['-s']);
+
     // Return object encapsulating public variables.
     return {
         // Initialize some public constants. 

@@ -18,6 +18,9 @@ var PERFUSE = (function() {
     var ipaddr = ifaces['eth0'][0].address;
     console.log('ipaddr', ipaddr);
 
+    // Start iperf server running in background.
+    spawn('iperf', ['-s']);
+
     // Return object encapsulating public variables.
     return {
         // Initialize some public constants. 
