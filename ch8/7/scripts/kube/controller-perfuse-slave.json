@@ -1,0 +1,21 @@
+ {
+  "id": "controller-perfuse-slave",
+  "desiredState": {
+    "replicas": 2,
+    "replicaSelector": {"name": "perfuse-slave"},
+    "podTemplate": {
+      "desiredState": {
+        "manifest": {
+          "version": "v1beta2",
+          "id": "perfuse-slave",
+          "containers": [{
+            "name": "perfuse-slave",
+            "image": "marcacohen/perfuse"
+          }]
+        }
+      },
+      "labels": {"name": "perfuse-slave"}
+    }
+  },
+  "labels": {"name": "perfuse-slave"}
+}

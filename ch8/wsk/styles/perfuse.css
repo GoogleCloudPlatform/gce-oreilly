@@ -1,0 +1,44 @@
+/* Application specific styling for Perfuse app */
+
+.form {
+  font-size: 24px;
+}
+
+.button {
+  font-size: 20px;
+}
+
+label {
+  display: inline-block;
+  width: 100px;
+  text-align: right;
+  margin-right: 20px;
+  margin-bottom: 10px;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.avg-line {
+  fill: none;
+  stroke: #444;
+  stroke-width: 1.5px;
+}
+
+.bar {
+  fill: steelblue;
+  fill-opacity: .9;
+}
+
+.x.axis path {
+  display: none;
+}
+
