@@ -209,7 +209,9 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
         var resp_str = null;
         console.log('running cmd: ' + cmd + ' w/ args: ' + args);
         if (cmd == 'random') {
-            resp = { type: 'perf', host: PERFUSE.ipaddr, value: Math.random() };
+            //Use IP addr when running under Kubernetes because Docker hostname/num is not propagated.
+            //resp = { type: 'perf', host: PERFUSE.ipaddr, value: Math.random() };
+            resp = { type: 'perf', host: PERFUSE.hostnum, value: Math.random() };
             resp_str = JSON.stringify(resp);
             console.log('response: ' + resp_str);
             try {
@@ -231,7 +233,9 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
             console.log('running ' + regexp + ' on ' + data + ' yielded ' + match);
             if (match) {
                 // If we match a line, JSON format result and send to master.
-                resp = { type: 'perf', host: PERFUSE.ipaddr, value: match[1] };
+                //Use IP addr when running under Kubernetes because Docker hostname/num is not propagated.
+                //resp = { type: 'perf', host: PERFUSE.ipaddr, value: match[1] };
+                resp = { type: 'perf', host: PERFUSE.hostnum, value: match[1] };
                 resp_str = JSON.stringify(resp);
                 console.log('response: ' + resp_str);
                 try {
