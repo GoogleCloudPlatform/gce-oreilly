@@ -145,7 +145,7 @@ def main(argv):
 
   def wait_for_result(obj_type, response):
     # Wait for response to asynch operation.
-    print 'waiting for', obj_type
+    print 'Waiting for', obj_type, 'creation.'
     op_name = response["name"]
     operations = service.zoneOperations()
     while True:
