@@ -53,25 +53,62 @@ FLOW = client.flow_from_clientsecrets(
     scope=['https://www.googleapis.com/auth/compute'],
     message=tools.message_if_missing(CLIENT_SECRET))
 
-def wait_for_result(obj_type, response):
-  # Wait for response to asynch operation.
-  op_name = response["name"]
-  operations = service.zoneOperations()
-  while True:
-    request = operations.get(project=PROJECT_ID, zone=ZONE, 
-                operation=op_name)
-    try:
-      response = request.execute()
-    except Exception, ex:
-      print "ERROR: " + str(ex)
-      sys.exit()
-    if "error" in response:
-      print "ERROR: " + str(response["error"])
-      sys.exit()
-    status = response["status"]
-    if status == "DONE":
-      print obj_type + " created."
-      break
+# JSON doc capturing details of persistent disk creation request. 
+BODY1 = {
+  "name": "new-disk",
+  "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
+  "type": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/diskTypes/pd-standard",
+  "sizeGb": "10"
+}
+
+# JSON doc capturing details of instance creation request, 
+# referencing newly created persistent disk as boot device.
+BODY2 = {
+  "disks": [
+    {
+      "type": "PERSISTENT",
+      "boot": True,
+      "mode": "READ_WRITE",
+      "deviceName": "new-disk",
+      "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
+      "source": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/disks/new-disk",
+      "autoDelete": True
+    }
+  ],
+  "networkInterfaces": [
+    {
+      "network": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/global/networks/default",
+      "accessConfigs": [
+        {
+          "name": "External NAT",
+          "type": "ONE_TO_ONE_NAT"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "items": []
+  },
+  "tags": {
+    "items": []
+  },
+  "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
+  "canIpForward": False,
+  "scheduling": {
+    "automaticRestart": True,
+    "onHostMaintenance": "MIGRATE"
+  },
+  "machineType": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/machineTypes/n1-standard-1",
+  "name": "new-instance",
+  "serviceAccounts": [
+    {
+      "email": "default",
+      "scopes": [
+        "https://www.googleapis.com/auth/devstorage.read_only"
+      ]
+    }
+  ]
+}
 
 def main(argv):
   # Parse the command-line flags.
@@ -96,7 +133,7 @@ def main(argv):
   # Set project, zone, and other constants.
   URL_PREFIX = 'https://www.googleapis.com/compute'
   API_VERSION = 'v1'
-  PROJECT_ID = 'your-project-id'
+  PROJECT_ID = 'gce-oreilly'
   PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
   INSTANCE_NAME = 'test-vm'
   ZONE = 'us-central1-a'
@@ -106,74 +143,37 @@ def main(argv):
       URL_PREFIX, API_VERSION, IMAGE_PROJECT_ID)
   IMAGE_NAME = 'debian-7-wheezy-v20140807'
 
-  # JSON doc capturing details of persistent disk creation request. 
-  BODY1 = {
-    "name": "new-disk",
-    "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
-    "type": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/diskTypes/pd-standard",
-    "sizeGb": "10"
-  }
+  def wait_for_result(obj_type, response):
+    # Wait for response to asynch operation.
+    print 'waiting for', obj_type
+    op_name = response["name"]
+    operations = service.zoneOperations()
+    while True:
+      request = operations.get(project=PROJECT_ID, zone=ZONE, 
+                  operation=op_name)
+      try:
+        response = request.execute()
+      except Exception, ex:
+        print "ERROR: " + str(ex)
+        sys.exit()
+      if "error" in response:
+        print "ERROR: " + str(response["error"])
+        sys.exit()
+      status = response["status"]
+      if status == "DONE":
+        print obj_type + " created."
+        break
 
-  # JSON doc capturing details of instance creation request, 
-  # referencing newly created persistent disk as boot device.
-  BODY2 = {
-    "disks": [
-      {
-        "type": "PERSISTENT",
-        "boot": true,
-        "mode": "READ_WRITE",
-        "deviceName": "new-disk",
-        "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
-        "source": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/disks/new-disk",
-        "autoDelete": true
-      }
-    ],
-    "networkInterfaces": [
-      {
-        "network": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/global/networks/default",
-        "accessConfigs": [
-          {
-            "name": "External NAT",
-            "type": "ONE_TO_ONE_NAT"
-          }
-        ]
-      }
-    ],
-    "metadata": {
-      "items": []
-    },
-    "tags": {
-      "items": []
-    },
-    "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
-    "canIpForward": false,
-    "scheduling": {
-      "automaticRestart": true,
-      "onHostMaintenance": "MIGRATE"
-    },
-    "machineType": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/machineTypes/n1-standard-1",
-    "name": "new-instance",
-    "serviceAccounts": [
-      {
-        "email": "default",
-        "scopes": [
-          "https://www.googleapis.com/auth/devstorage.read_only"
-        ]
-      }
-    ]
-  }
-
-  requests = { "Disk": BODY1, "Instance": BODY2 }
+  requests = (('Disk', service.disks, BODY1), ('Instance', service.instances, BODY2)) 
   # Build and execute two requests in sequence.
-  for (type, body) in requests.items():
-    request = service.instances().insert(project=PROJECT_ID, 
-                zone=ZONE, body=body)
+  for (type, method, body) in requests:
+    request = method().insert(project=PROJECT_ID, zone=ZONE, body=body)
     try:
       response = request.execute(http)
     except Exception, ex:
       print "ERROR: " + str(ex)
       sys.exit()
-    wait_for_result(key, response)
+    wait_for_result(type, response)
 
 # For more information on the Compute Engine API you can visit:
 #
