@@ -16,12 +16,12 @@
 
 """Retrieve project information using the Compute Engine API.
 Usage:
-  $ python ch2-1.py
+  $ python ch3-1.py
 
 You can also get help on all the command-line flags the program understands
 by running:
 
-  $ python ch2-1.py --help
+  $ python ch3-1.py --help
 
 """
 
@@ -52,6 +52,26 @@ FLOW = client.flow_from_clientsecrets(
     CLIENT_SECRET,
     scope=['https://www.googleapis.com/auth/compute'],
     message=tools.message_if_missing(CLIENT_SECRET))
+
+def wait_for_result(obj_type, response):
+  # Wait for response to asynch operation.
+  op_name = response["name"]
+  operations = service.zoneOperations()
+  while True:
+    request = operations.get(project=PROJECT_ID, zone=ZONE, 
+                operation=op_name)
+    try:
+      response = request.execute()
+    except Exception, ex:
+      print "ERROR: " + str(ex)
+      sys.exit()
+    if "error" in response:
+      print "ERROR: " + str(response["error"])
+      sys.exit()
+    status = response["status"]
+    if status == "DONE":
+      print obj_type + " created."
+      break
 
 def main(argv):
   # Parse the command-line flags.
@@ -86,72 +106,75 @@ def main(argv):
       URL_PREFIX, API_VERSION, IMAGE_PROJECT_ID)
   IMAGE_NAME = 'debian-7-wheezy-v20140807'
 
-  BODY = {
-    'name': INSTANCE_NAME,
-    'tags': {
-      'items': ['frontend']
-    },
-    'machineType': '%s/zones/%s/machineTypes/%s' % (
-        PROJECT_URL, ZONE, MACHINE_TYPE),
-    'disks': [{
-      'boot': True,
-      'type': 'PERSISTENT',
-      'mode': 'READ_WRITE',
-      'zone': '%s/zones/%s' % (PROJECT_URL, ZONE),
-      'initializeParams': {
-        'sourceImage': '%s/global/images/%s' % (IMAGE_PROJECT_URL, IMAGE_NAME)
-      },
-    }],
-    'networkInterfaces': [{
-      'accessConfigs': [{
-        'name': 'External NAT',
-        'type': 'ONE_TO_ONE_NAT'
-      }],
-      'network': PROJECT_URL + '/global/networks/default'
-    }],
-    'scheduling': {
-      'automaticRestart': True,
-      'onHostMaintenance': 'MIGRATE'
-    },
-    'serviceAccounts': [{
-      'email': 'default',
-      'scopes': [
-        'https://www.googleapis.com/auth/compute',
-        'https://www.googleapis.com/auth/devstorage.full_control'
-      ]
-    }],
+  # JSON doc capturing details of persistent disk creation request. 
+  BODY1 = {
+    "name": "new-disk",
+    "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
+    "type": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/diskTypes/pd-standard",
+    "sizeGb": "10"
   }
 
-  # Build and execute instance insert request.
-  request = service.instances().insert(
-      project=PROJECT_ID, zone=ZONE, body=BODY)
-  try:
-    response = request.execute()
-  except Exception, ex:
-    print 'ERROR: ' + str(ex)
-    sys.exit()
+  # JSON doc capturing details of instance creation request, 
+  # referencing newly created persistent disk as boot device.
+  BODY2 = {
+    "disks": [
+      {
+        "type": "PERSISTENT",
+        "boot": true,
+        "mode": "READ_WRITE",
+        "deviceName": "new-disk",
+        "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
+        "source": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/disks/new-disk",
+        "autoDelete": true
+      }
+    ],
+    "networkInterfaces": [
+      {
+        "network": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/global/networks/default",
+        "accessConfigs": [
+          {
+            "name": "External NAT",
+            "type": "ONE_TO_ONE_NAT"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "items": []
+    },
+    "tags": {
+      "items": []
+    },
+    "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
+    "canIpForward": false,
+    "scheduling": {
+      "automaticRestart": true,
+      "onHostMaintenance": "MIGRATE"
+    },
+    "machineType": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/machineTypes/n1-standard-1",
+    "name": "new-instance",
+    "serviceAccounts": [
+      {
+        "email": "default",
+        "scopes": [
+          "https://www.googleapis.com/auth/devstorage.read_only"
+        ]
+      }
+    ]
+  }
 
-  # Instance creation is asynchronous so now wait for a DONE status.
-  op_name = response['name']
-  operations = service.zoneOperations()
-  while True:
-    request = operations.get(
-        project=PROJECT_ID, zone=ZONE, operation=op_name)
+  requests = { "Disk": BODY1, "Instance": BODY2 }
+  # Build and execute two requests in sequence.
+  for (type, body) in requests.items():
+    request = service.instances().insert(project=PROJECT_ID, 
+                zone=ZONE, body=body)
     try:
-      response = request.execute()
+      response = request.execute(http)
     except Exception, ex:
-      print 'ERROR: ' + str(ex)
+      print "ERROR: " + str(ex)
       sys.exit()
-    if 'error' in response:
-      print 'ERROR: ' + str(response['error'])
-      sys.exit()
-    status = response['status']
-    if status == 'DONE':
-      print 'Instance created.'
-      break
-    else:
-      print 'Waiting for operation to complete. Status: ' + status
-  
+    wait_for_result(key, response)
+
 # For more information on the Compute Engine API you can visit:
 #
 #   https://developers.google.com/compute/docs/reference/latest/
