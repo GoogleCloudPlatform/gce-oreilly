@@ -133,7 +133,7 @@ def main(argv):
   # Set project, zone, and other constants.
   URL_PREFIX = 'https://www.googleapis.com/compute'
   API_VERSION = 'v1'
-  PROJECT_ID = 'gce-oreilly'
+  PROJECT_ID = 'your-project-id'
   PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
   INSTANCE_NAME = 'test-vm'
   ZONE = 'us-central1-a'
