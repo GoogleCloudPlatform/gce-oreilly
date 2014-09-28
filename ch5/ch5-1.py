@@ -38,8 +38,54 @@ from oauth2client.gce import AppAssertionCredentials
 
 # Set project, zone, and other constants.
 API_NAME = 'datastore'
-API_VERSION = 'v1beta1'
-PROJECT_ID = 'gce-oreilly'
+API_VERSION = 'v1beta2'
+PROJECT_ID = 'your-project-id'
+DATA = (
+  ('My Bonnie', 1961, 26),
+  ('Love Me Do', 1962, 1),
+  ('From Me to You', 1963, 116),
+  ('She Loves You', 1963, 1),
+  ('Roll Over Beethoven', 1963, 68),
+  ('I Want to Hold Your Hand', 1963, 1),
+  ('Please Please Me', 1964, 3),
+  ('All My Loving', 1964, 45),
+  ('Why', 1964, 88),
+  ('Twist and Shout', 1964, 2),
+  ('Can\'t Buy Me Love', 1964, 1),
+  ('Do You Want to Know a Secret', 1964, 2),
+  ('Ain\'t She Sweet', 1964, 19),
+  ('A Hard Day\'s Night', 1964, 1),
+  ('I\'ll Cry Instead', 1964, 25),
+  ('And I Love Her', 1964, 12),
+  ('Matchbox', 1964, 17),
+  ('I Feel Fine', 1964, 1),
+  ('Eight Days a Week', 1965, 1),
+  ('Ticket to Ride', 1965, 1),
+  ('Help', 1965, 1),
+  ('Yesterday', 1965, 1),
+  ('Boys', 1965, 102),
+  ('We Can Work It Out', 1965, 1),
+  ('Nowhere Man', 1966, 3),
+  ('Paperback Writer', 1966, 1),
+  ('Yellow Submarine', 1966, 2),
+  ('Penny Lane', 1967, 1),
+  ('All You Need Is Love', 1967, 1),
+  ('Hello Goodbye', 1967, 1),
+  ('Lady Madonna', 1968, 4),
+  ('Hey Jude', 1968, 1),
+  ('Get Back', 1969, 1),
+  ('The Ballad of John and Yoko', 1969, 8),
+  ('Something', 1969, 3),
+  ('Let It Be', 1970, 1),
+  ('The Long and Winding Road', 1970, 1),
+  ('Got to Get You into My Life', 1976, 7),
+  ('Ob-La-Di, Ob-La-Da', 1976, 49),
+  ('Sgt. Pepper\'s Lonely Hearts Club Band', 1978, 71),
+  ('The Beatles Movie Medley', 1982, 12),
+  ('Baby It\'s You', 1995, 67),
+  ('Free as a Bird', 1995, 6),
+  ('Real Love', 1996, 11);
+)
 
 # Parser for command-line arguments.
 parser = argparse.ArgumentParser(
@@ -47,7 +93,7 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     parents=[tools.argparser])
 
-def commit(datastore, peak, year, title):
+def commit(datastore, title, year, peak):
   body = {
     'mode': 'NON_TRANSACTIONAL',
     'mutation': {
@@ -88,7 +134,8 @@ def main(argv):
   # Construct the service object for the interacting with the Compute Engine API.
   service = discovery.build(API_NAME, API_VERSION, http=http)
 
-  commit(service.datasets(), 1960, 10, 'foo')
+  for (title, year, peak) in DATA:
+    commit(service.datasets(), title, year, peak)
 
 # For more information on the Compute Engine API you can visit:
 #
