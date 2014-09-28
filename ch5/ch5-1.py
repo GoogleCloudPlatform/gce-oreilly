@@ -34,6 +34,12 @@ from apiclient import discovery
 from oauth2client import file
 from oauth2client import client
 from oauth2client import tools
+from oauth2client.gce import AppAssertionCredentials
+
+# Set project, zone, and other constants.
+API_NAME = 'datastore'
+API_VERSION = 'v1beta1'
+PROJECT_ID = 'gce-oreilly'
 
 # Parser for command-line arguments.
 parser = argparse.ArgumentParser(
@@ -41,37 +47,38 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     parents=[tools.argparser])
 
-# CLIENT_SECRET is the name of a file containing the OAuth 2.0 information
-# for this application, including client_id and client_secret.
-CLIENT_SECRET = os.path.join(os.path.dirname(__file__), 'client_secret.json')
-
-# Set up a Flow object to be used for authentication. PLEASE ONLY
-# ADD THE SCOPES YOU NEED. For more information on using scopes
-# see <https://developers.google.com/compute/docs/api/how-tos/authorization>.
-FLOW = client.flow_from_clientsecrets(
-    CLIENT_SECRET,
-    scope=['https://www.googleapis.com/auth/compute'],
-    message=tools.message_if_missing(CLIENT_SECRET))
-
-# JSON doc capturing details of persistent disk creation request. 
-BODY1 = {
-  "name": "new-disk",
-  "zone": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a",
-  "type": "https://www.googleapis.com/compute/v1/projects/gce-oreilly/zones/us-central1-a/diskTypes/pd-standard",
-  "sizeGb": "10"
-}
+def commit(datastore, peak, year, title):
+  body = {
+    'mode': 'NON_TRANSACTIONAL',
+    'mutation': {
+      'insertAutoId': [
+        {
+          'key': {
+            'partitionId': { 'namespace': 'Beatles' },
+            'path': [ { 'kind': 'song' } ]
+          },
+          'properties': { 
+            'peak': { 'integerValue': peak },
+            'year': { 'integerValue': year },
+            'title': { 'stringValue': title }
+          }
+        }
+      ]
+    }
+  }
+  try:
+    req = datastore.commit(datasetId=PROJECT_ID, body=body)
+    resp = req.execute()
+  except Exception, ex:
+    print 'ERROR: ' + str(ex)
+    sys.exit()
 
 def main(argv):
   # Parse the command-line flags.
   flags = parser.parse_args(argv[1:])
 
-  # If the credentials don't exist or are invalid run through the native client
-  # flow. The Storage object will ensure that if successful the good
-  # credentials will get written back to the file.
-  storage = file.Storage('sample.dat')
-  credentials = storage.get()
-  if credentials is None or credentials.invalid:
-    credentials = tools.run_flow(FLOW, storage, flags)
+  # Obtain service account credentials from virtual machine environement.
+  credentials = AppAssertionCredentials(['https://www.googleapis.com/auth/datastore'])
 
   # Create an httplib2.Http object to handle our HTTP requests and authorize it
   # with our good Credentials.
@@ -79,53 +86,9 @@ def main(argv):
   http = credentials.authorize(http)
 
   # Construct the service object for the interacting with the Compute Engine API.
-  service = discovery.build('compute', 'v1', http=http)
+  service = discovery.build(API_NAME, API_VERSION, http=http)
 
-  # Set project, zone, and other constants.
-  URL_PREFIX = 'https://www.googleapis.com/compute'
-  API_VERSION = 'v1'
-  PROJECT_ID = 'your-project-id'
-  PROJECT_URL = '%s/%s/projects/%s' % (URL_PREFIX, API_VERSION, PROJECT_ID)
-  INSTANCE_NAME = 'test-vm'
-  ZONE = 'us-central1-a'
-  MACHINE_TYPE = 'n1-standard-1'
-  IMAGE_PROJECT_ID = 'debian-cloud'
-  IMAGE_PROJECT_URL = '%s/%s/projects/%s' % (
-      URL_PREFIX, API_VERSION, IMAGE_PROJECT_ID)
-  IMAGE_NAME = 'debian-7-wheezy-v20140807'
-
-  def wait_for_result(obj_type, response):
-    # Wait for response to asynch operation.
-    print 'Waiting for', obj_type, 'creation.'
-    op_name = response["name"]
-    operations = service.zoneOperations()
-    while True:
-      request = operations.get(project=PROJECT_ID, zone=ZONE, 
-                  operation=op_name)
-      try:
-        response = request.execute()
-      except Exception, ex:
-        print "ERROR: " + str(ex)
-        sys.exit()
-      if "error" in response:
-        print "ERROR: " + str(response["error"])
-        sys.exit()
-      status = response["status"]
-      if status == "DONE":
-        print obj_type + " created."
-        break
-
-  
-  #requests = (('Disk', service.disks, BODY1), ('Instance', service.instances, BODY2)) 
-  # Build and execute two requests in sequence.
-  #for (type, method, body) in requests:
-    #request = method().insert(project=PROJECT_ID, zone=ZONE, body=body)
-    #try:
-      #response = request.execute(http)
-    #except Exception, ex:
-      #print "ERROR: " + str(ex)
-      #sys.exit()
-    #wait_for_result(type, response)
+  commit(service.datasets(), 1960, 10, 'foo')
 
 # For more information on the Compute Engine API you can visit:
 #
