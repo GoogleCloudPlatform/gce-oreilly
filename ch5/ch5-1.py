@@ -84,7 +84,7 @@ DATA = (
   ('The Beatles Movie Medley', 1982, 12),
   ('Baby It\'s You', 1995, 67),
   ('Free as a Bird', 1995, 6),
-  ('Real Love', 1996, 11);
+  ('Real Love', 1996, 11)
 )
 
 # Parser for command-line arguments.
