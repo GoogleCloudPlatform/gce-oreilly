@@ -144,7 +144,6 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
             if (msg.type === 'random') {
                 cmd = msg.type;
             }
-            if (!skip) {
             // Run the perf test command and send results
             // to sock_send (ZeroMQ push socket).
             run_cmd(PERFUSE.hostnum, cmd, args, regexp, sock_send);
