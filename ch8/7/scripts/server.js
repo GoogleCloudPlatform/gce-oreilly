@@ -154,48 +154,14 @@ if (PERFUSE.hostname === PERFUSE.MASTER) {
             console.log('args: ' + JSON.stringify(args));
             var cmd = args.shift();
             var regexp = new RegExp(msg.regexp);
-            var skip = false;
             // disk regexp: /\s+([\d\.]+)\s+Mbits\/s/;
             // net regexp:  /\s*READ:.* aggrb=(.*)KB\/s, minb=/;
-            if (msg.type === 'net') {
-                // Network tests have special semantics - every second
-                // VM runs a test on the intervening VMs.
-                var index = 0;
-                var i = 0;
-                // This loop sets index to the nominal VM number 
-                // associated with this VM.
-                for (i in msg.slaves) {
-                    if (msg.slaves[i] === PERFUSE.hostnum) {
-                        break;
-                    }
-                    index++;
-                }
-                // Find the matching VM for this network test (one after
-                // this one with wrap around logic).
-                if ((index%2) === 0) {
-                    // Even nominal number so this VM is an active tester.
-                    // Set server to the destination VM number.
-                    var server = 0;
-                    if (i === (msg.slaves.length - 1)) {
-                        // Wrap around, if necessary.
-                        server = 1;
-                    } else {
-                        server = msg.slaves[index + 1];
-                    }
-                    args[1]= args[1].replace('%d', server);
-                } else {
-                    // Odd nominal number so this is a passive, test
-                    // subject VM. Nothing special to do for this case.
-                    skip = true;
-                }
-            } else if (msg.type === 'random') {
+            if (msg.type === 'random') {
                 cmd = msg.type;
             }
-            if (!skip) {
-                // Run the perf test command and send results
-                // to sock_send (ZeroMQ push socket).
-                run_cmd(PERFUSE.hostnum, cmd, args, regexp, sock_send);
-            }
+            // Run the perf test command and send results
+            // to sock_send (ZeroMQ push socket).
+            run_cmd(PERFUSE.hostnum, cmd, args, regexp, sock_send);
         } catch(e) {
             console.log("error " + e);
         }  
