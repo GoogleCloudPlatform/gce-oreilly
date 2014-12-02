@@ -49,12 +49,13 @@ def main(argv):
   # Obtain service account credentials from virtual machine environement.
   credentials = AppAssertionCredentials(['https://www.googleapis.com/auth/compute'])
 
-  # Create an httplib2.Http object to handle our HTTP requests and authorize it
-  # with our good Credentials.
+  # Create an httplib2.Http object to handle our HTTP requests and authorize
+  # it with our good Credentials.
   http = httplib2.Http()
   http = credentials.authorize(http)
 
-  # Construct the service object for the interacting with the Compute Engine API.
+  # Construct the service object for the interacting with the Compute Engine
+  # API.
   service = discovery.build('compute', 'v1', http=http)
 
   # Set project, zone, and other constants.
