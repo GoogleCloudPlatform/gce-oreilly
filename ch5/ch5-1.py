@@ -123,15 +123,16 @@ def main(argv):
   # Parse the command-line flags.
   flags = parser.parse_args(argv[1:])
 
-  # Obtain service account credentials from virtual machine environement.
+  # Obtain service account credentials from virtual machine environment.
   credentials = AppAssertionCredentials(['https://www.googleapis.com/auth/datastore'])
 
-  # Create an httplib2.Http object to handle our HTTP requests and authorize it
-  # with our good Credentials.
+  # Create an httplib2.Http object to handle our HTTP requests and authorize
+  # it with our good Credentials.
   http = httplib2.Http()
   http = credentials.authorize(http)
 
-  # Construct the service object for the interacting with the Compute Engine API.
+  # Construct the service object for the interacting with the Compute Engine
+  # API.
   service = discovery.build(API_NAME, API_VERSION, http=http)
 
   for (title, year, peak) in DATA:
