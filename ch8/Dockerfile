@@ -10,7 +10,7 @@ RUN apt-get install -y curl make g++
 
 # Install Node.js and npm.
 RUN curl -sL https://deb.nodesource.com/setup | bash -
-RUN apt-get install -y npm
+RUN apt-get install -y nodejs
 
 # Install ZeroMQ libs.
 RUN apt-get install -y libzmq-dev
